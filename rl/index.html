@@ -1,1 +1,61 @@
+<!DOCTYPE html>
+<head>
+    <title>Rapy Store - Rocket League Kredi Fiyatı Hesaplama Aracı</title>
+</head>
+<body>
+<style>
+    body {
+        background-color: #080c2c;
+    }
 
+    .textbar{
+        border-radius: 8px;
+        height: 35px;
+        width: 100px;
+        font-size: 25px;
+        background-color: rgb(207, 207, 207);
+    }
+
+    .textbar:focus{
+        border-radius: 8px;
+        background-color: rgb(245, 245, 245);
+    }
+
+</style>
+
+    <center><h1 style="font-family: sans-serif; color: white;">Rapy Store - Rocket League Kredi Fiyatı Hesaplama Aracı</h1></center>
+    <br>
+    <br>
+    <br>
+    <center><h3 style="font-family: sans-serif; color: white;">Almak istediğiniz kredi miktarını aşağıya giriniz.</h3></center>
+    <center><input type="number" class="textbar" min="100" step="50" id="miktar"></center>
+    <br>
+    <br>
+    <center><button onclick="hesapla()">Hesapla</button></center>
+    <br>
+    <center><p id="sonuc" style="font-family: sans-serif; color: white; font-size: 20px;"></p></center>
+
+
+
+    <script>
+        function hesapla() {
+            const krediMiktariInput = document.getElementById("miktar");
+            const krediMiktari = parseInt(krediMiktariInput.value);
+
+             const sonucP = document.getElementById("sonuc");
+
+            if (krediMiktari % 50 !== 0 || krediMiktari == 50) {
+                sonucP.textContent = "Lütfen sadece 50'nin katları olan miktarları girin. (sadece 50 girmeyiniz.)";
+                return;
+            }
+
+            const tlMiktari = krediMiktari * 0.12;
+
+           
+            sonucP.textContent = `${krediMiktari} kredi ${tlMiktari} TL fiyatındadır.`;
+        }
+    </script>
+
+
+</body>
+</html>
