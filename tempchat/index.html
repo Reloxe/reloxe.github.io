@@ -1,87 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Temp Chat - Homepage</title>
-       <link rel="stylesheet" href="cdn/style.css">
-       <script src="cdn/p2p-config.js"></script>
-
-
-    </head>
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Temp Chat - Homepage</title>
+    <link rel="stylesheet" href="cdn/style.css">
+    <script src="cdn/p2p-config.js"></script>
+</head>
 <body>
     <noscript><center><h3 style="color: white;">This application works with javascript !</h3></center></noscript>
-<a href="https://www.nokersoft.com" target="_blank" style="
-    position:fixed;
-    bottom:8px;
-    left:15px;
-    font-size:10px;
-    color:gray;
-    opacity:0.3;
-    z-index:9999;
-    font-weight:bold;
-    text-decoration:none;
-">
-  Powered By Noker Software.
-</a>
-
+    <a href="https://www.nokersoft.com" target="_blank" style="position:fixed;bottom:8px;left:15px;font-size:10px;color:gray;opacity:0.3;z-index:9999;font-weight:bold;text-decoration:none;">
+      Powered By Noker Software.
+    </a>
     <img style="position: absolute; z-index: -1; top: 12px;" src="cdn/tempchatlogo.png" width="130px" onselect="return false;" ondragstart="return false;">
-   <center> <a style="
-   font-family: 
-   archivo; color: white; 
-   font-size: 55px;
-   position: relative;
-   top: 50px;
-   ">Temp Chat</a></center>
-
-  <center> 
-<a style="
-font-family: arimo;
-color: white;
-position: relative;
-top: 90px;
-font-size: 25px;
-line-height: 35px;
-"><b>Temp Chat - No Log<br>No Save - Yes Privacy</b></a>
-  </center> 
-
-
-
-  
-  <center> 
-    <a onclick="creteroom();" style="
-    font-family: arimo;
-    color: white;
-    position: relative;
-    top: 200px;
-    font-size: 20px;
-    background-color: #007579;
-    border: 9px solid #007579;
-    border-radius: 10px;
-    "><b>Create Chat Room</b></a>
-      </center> 
-
-
+    <center>
+        <a style="font-family: archivo; color: white; font-size: 55px; position: relative; top: 50px;">Temp Chat</a>
+    </center>
+    <center> 
+        <a style="font-family: arimo; color: white; position: relative; top: 90px; font-size: 25px; line-height: 35px;"><b>Temp Chat - No Log<br>No Save - Yes Privacy</b></a>
+    </center> 
+    <center> 
+        <a onclick="creteroom();" style="font-family: arimo; color: white; position: relative; top: 200px; font-size: 20px; background-color: #007579; padding: 15px 30px; border-radius: 10px; cursor: pointer; display: inline-block;"><b>Create Chat Room</b></a>
+    </center> 
 </body>
-
 <script>
+    function generateId(len) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      return Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
     function creteroom() {
-      var chatroomid = Math.floor(Math.random() * (9999999999 - 111111111) ) + 111111111;
-      var urln = new URL("chat.html", document.location.href);
-      urln.searchParams.append("chat_id", chatroomid);
-      
-      // Select a random signaling server index from the pool
-      var serverIndex = Math.floor(Math.random() * P2P_CONFIG.signalingServers.length);
-      urln.searchParams.append("srv", serverIndex);
-
-      // Generate a random 256-bit AES key and append it as a hash
+      const chatroomid = generateId(16);
+      const srvIndex = Math.floor(Math.random() * P2P_CONFIG.signalingServers.length);
       const key = generateHexKey();
-      urln.hash = "key=" + key;
-
-      document.location.replace(urln);
+      
+      const hashParams = new URLSearchParams();
+      hashParams.set("id", chatroomid);
+      hashParams.set("key", key);
+      hashParams.set("srv", srvIndex);
+      
+      window.location.href = "chat.html#" + hashParams.toString();
     }
 </script>
-
 </html>
-

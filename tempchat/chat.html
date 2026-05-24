@@ -1,274 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Temp Chat - Chat</title>
-       <link rel="stylesheet" href="cdn/style.css">
-       <script src="cdn/peerjs.min.js"></script>
-       <script src="cdn/p2p-config.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Temp Chat - Chat</title>
+    <link rel="stylesheet" href="cdn/style.css">
+    <script src="cdn/peerjs.min.js"></script>
+    <script src="cdn/p2p-config.js"></script>
+    <style>
+        body { font-family: arimo; margin: 0; padding: 0; }
+        .header_logo { position: absolute; z-index: -1; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; opacity: 0.2; }
+        .title { color: white; font-family: archivo; font-size: 30px; text-align: center; margin-top: 15px; }
+        .subtitle { color: white; text-align: center; font-size: 16px; line-height: 25px; margin-top: 5px; }
+        
+        .share_container {
+            display: flex; width: 90%; max-width: 800px; margin: 15px auto;
+            background-color: rgb(54, 54, 54); border-radius: 5px; overflow: hidden;
+        }
+        .share_input {
+            flex: 1; background: transparent; border: none; color: white;
+            padding: 10px 15px; font-size: 14px; outline: none;
+        }
+        .copy_btn {
+            background-color: #007579; color: white; border: none;
+            padding: 0 20px; font-size: 14px; cursor: pointer; font-family: arimo; font-weight: bold;
+        }
+        .copy_btn:hover { background-color: #009398; }
 
+        #chatpopup {
+            position: absolute; z-index: 9; background-color: rgb(63, 63, 63);
+            left: 50%; transform: translateX(-50%); top: 150px;
+            width: 90%; max-width: 400px; box-shadow: 0px 0px 50px 10px rgba(0,0,0,0.5);
+            display: none; border-radius: 10px; padding: 30px 20px; text-align: center;
+        }
+        
+        .popup_input {
+            background-color: rgb(29, 29, 29); color: white; font-size: 16px;
+            width: 100%; box-sizing: border-box; border: none; border-radius: 5px;
+            padding: 12px; margin-bottom: 15px; outline: none;
+        }
+        
+        .connect_btn {
+            color: white; font-size: 18px; background-color: #007579;
+            padding: 12px 30px; border-radius: 5px; cursor: pointer; display: inline-block; margin-top: 10px;
+        }
 
-    </head>
+        #messages_id {
+            background-color: rgb(43, 43, 43); width: 90%; max-width: 800px;
+            height: 60vh; margin: 10px auto 80px auto; overflow-y: auto; overflow-x: hidden;
+            border-radius: 10px; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        
+        .chat_input_container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 800px; display: flex; align-items: center; gap: 10px;
+            background-color: rgb(48, 48, 48); border-radius: 25px; padding: 5px 15px 5px 25px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        
+        #chat_input_id {
+            flex: 1; background: transparent; border: none; color: white;
+            font-size: 16px; outline: none; padding: 12px 0;
+        }
+        
+        .send_button { cursor: pointer; transition: all 0.2s; width: 35px; height: 35px; }
+        .send_button:hover { transform: scale(1.1); }
 
+        .msg_wrapper { display: flex; flex-direction: column; width: 100%; }
+        .msg_remote { align-items: flex-start; }
+        .msg_local { align-items: flex-end; }
+        
+        .msg_sender_name { color: #a7a7a7; font-size: 12px; margin-bottom: 4px; margin-left: 5px; margin-right: 5px; }
+        
+        .msg_bubble {
+            color: white; font-size: 16px; border-radius: 15px; padding: 10px 15px;
+            max-width: 75%; word-wrap: break-word; box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+        }
+        .msg_remote .msg_bubble { background-color: rgb(78, 78, 78); border-top-left-radius: 3px; }
+        .msg_local .msg_bubble { background-color: #007579; border-top-right-radius: 3px; text-align: left; }
+        
+        .sys_msg { color: #007579; text-align: center; font-size: 13px; margin: 5px 0; font-style: italic; align-self: center; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgb(43, 43, 43); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgb(78, 78, 78); border-radius: 10px; }
+    </style>
+</head>
 <body onload="start_()">
     <noscript><center><h3 style="color: white;">This application works with javascript !</h3></center></noscript>
-<a href="https://www.nokersoft.com" target="_blank" style="
-    position:fixed;
-    bottom:8px;
-    left:15px;
-    font-size:10px;
-    color:gray;
-    opacity:0.3;
-    z-index:9999;
-    font-weight:bold;
-    text-decoration:none;
-">
-  Powered By Noker Software.
-</a>
-    <img style="position: absolute; z-index: -1; top: 12px;" src="cdn/tempchatlogo.png" width="130px" onselect="return false;" ondragstart="return false;">
-   <center> <a style="
-   font-family: 
-   archivo; color: white; 
-   font-size: 40px;
-   position: relative;
-   top: 20px;
-   ">Temp Chat</a></center>
+    <a href="https://www.nokersoft.com" target="_blank" style="position:fixed;bottom:8px;left:15px;font-size:10px;color:gray;opacity:0.3;z-index:9999;font-weight:bold;text-decoration:none;">
+      Powered By Noker Software.
+    </a>
+    
+    <div class="title">Temp Chat</div>
+    <div class="subtitle"><b>Temp Chat - No Log<br>No Save - Yes Privacy</b></div>
+    
+    <div class="share_container" id="share_box" style="display: none;">
+        <input type="text" id="share_link_input" class="share_input" readonly>
+        <button class="copy_btn" onclick="copyShareLink()">Copy</button>
+    </div>
 
-  <center> 
-<a style="
-font-family: arimo;
-color: white;
-position: relative;
-top: 40px;
-font-size: 20px;
-line-height: 35px;
-"><b>Temp Chat - No Log<br>No Save - Yes Privacy</b></a>
-  </center> 
-<br> <br>
-  <center><a 
-  id="shakerlink"
-  style="
-  color: white;
-  position: relative;
-  top: 20px;
-  font-family: arimo;
-  font-size: 18px;
-  user-select: text;
-  background-color: rgb(54, 54, 54);
-  border: 5px solid rgb(54, 54, 54);
-  ">Share Chat Link: </a></center>
+    <div id="chatpopup">
+        <div style="color: white; font-size: 23px; margin-bottom: 20px;"><b>Enter Nickname</b></div>
+        <input id="nickname_id" class="popup_input" placeholder="Nickname" onkeypress="if(event.key === 'Enter') connect_chat()">
+        <a class="connect_btn" onclick="connect_chat()">Join Chat &gt;</a>
+    </div>
 
-  <style>
-    #chat_input_id {
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    font-size: 18px;
-    width: 50%;
-    border: 8px solid rgb(48, 48, 48);
-    transform: translateX(-50%);
-    background-color: rgb(48, 48, 48);
-    border-radius: 10px;
-    color: white;
-    outline: none;
-    transition: all 0.3s;
-    box-shadow: 0px 0px 5px black;
-    }
-    #chat_input_id:hover {
-      box-shadow: 0px 0px 5px;
-    }
-    #chat_input_id:focus {
-      box-shadow: 0px 0px 7px;
-    }
+    <div id="messages_id"></div>
 
-    .send_button {
-  position: fixed;
-  bottom: 55px;
-  left: 77%;
-  color: rgb(59, 59, 59);
-  transition: all 0.2s;
-    }
-    .send_button:hover {
-box-shadow: 0px 0px 15px rgb(59, 59, 59);
-    }
-    .send_button:focus {
-box-shadow: 0px 0px 15px rgb(59, 59, 59);
-    }
-
-    .message_karsi_taraf {
-      color: white;
-      position: relative;
-      font-family: arimo;
-      display: block;
-      font-size: 18px;
-      box-shadow: rgb(32, 32, 32) 0px 0px 9px 1px;
-      background-color: rgb(78, 78, 78); 
-      border: 7px solid rgb(78, 78, 78); 
-      border-radius: 13px;
-      margin-bottom: 15px;
-      padding-left: 10px;
-    }
-    .user_name_sender {
-      
-      color: white;
-      position: relative;
-      font-family: arimo;
-      box-shadow: rgb(32, 32, 32) 0px 0px 9px 1px;
-      background-color: rgb(78, 78, 78); 
-      border: 3px solid rgb(78, 78, 78); 
-      font-size: 15px;
-      border-radius: 9px;
-      z-index: 5;
-    }
-
-    .message_bizim {
-      color: white;
-      position: relative;
-      box-shadow: rgb(32, 32, 32) 0px 0px 9px 1px;
-      display: block;
-      font-family: arimo;
-      text-align: right;
-      font-size: 18px;
-      padding-right: 10px;
-      background-color: rgb(70, 70, 70); 
-      border: 7px solid rgb(70, 70, 70); 
-      border-radius: 13px;
-      margin-bottom: 15px;
-    }
-  </style>
-
-<div id="chatpopup" style="
-  position: absolute;
-  z-index: 9;
-  background-color: rgb(63, 63, 63);
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0px 0px 90px 19px;
-  width: 50%;
-  display: none;
-  top: 190px;
-  height: 400px;
-">
-<br>
-  <center><a style="color: white;
-  font-family: arimo;
-  font-size: 23px;
-    "><b>Connect Chat</b></a></center>
-
-    <center><input id="chatroomin_id" placeholder="Chat Room ID" style="
-background-color: rgb(29, 29, 29); 
-position: relative;
-width: 75%;
-color: white;
-font-size: 20px;
-top: 40px;
-user-select: text;
-border: 10px solid rgb(29, 29, 29); 
-border-radius: 10px;
-    " ></center>
-<br>
-
-<center><input id="nickname_id" placeholder="Nickname" style="
-  background-color: rgb(29, 29, 29); 
-  position: relative;
-  width: 75%;
-  color: white;
-  font-size: 20px;
-  top: 40px;
-  user-select: text;
-  border: 10px solid rgb(29, 29, 29); 
-  border-radius: 10px;
-      " ></center>
-
-     <center> <a style="
-      position: relative;
-      top: 90px;
-      font-family: arimo;
-      color: rgb(167, 167, 167);
-
-      font-size: 20px;
-      background-color: rgb(29, 29, 29); 
-      border: 10px solid rgb(29, 29, 29); 
-    border-radius: 10px;
-
-      " onclick="connect_chat()">Connect &gt;</a>
-
-</center>
-
-
-</div>
-
-<div id="messages_id" style="
-background-color: rgb(43, 43, 43); 
-position: relative;
-width: 75%;
-height: 68vh;
-overflow-x: auto;
-left: 50%;
-top: 40px;
-user-select: text;
-border: 10px solid rgb(43, 43, 43); 
-border-radius: 10px;
-transform: translateX(-50%);
-"> 
-
-</div>
-
-  <input type="text" id="chat_input_id" placeholder="Connecting...">
-
-<img src="cdn/sendbuton.png" onclick="send_msg();" onselect="return false;" ondragstart="return false;" width="30px" class="send_button">
-  
-
-</body>
+    <div class="chat_input_container">
+        <input type="text" id="chat_input_id" placeholder="Connecting...">
+        <img src="cdn/sendbuton.png" onclick="send_msg();" onselect="return false;" ondragstart="return false;" class="send_button">
+    </div>
 
 <script>
 let peer = null;
-let connections = {}; // peerId -> DataConnection
+let connections = {};
 let isHost = false;
 let myPeerId = null;
 let chatRoomId = null;
 let myNickname = null;
-let parms = new URLSearchParams(document.location.search);
+let srvIndex = 0;
 
 function connect_chat() {
-  // Strip both query and hash safely to get clean base URL
-  var baseUrl = document.location.href.split("?")[0].split("#")[0];
-  var urln = new URL(baseUrl);
-  urln.searchParams.append("chat_id", document.getElementById("chatroomin_id").value);
-  urln.searchParams.append("nick", document.getElementById("nickname_id").value);
-  
-  let srv = parms.get("srv");
-  if (srv === null || srv === undefined) {
-    srv = Math.floor(Math.random() * P2P_CONFIG.signalingServers.length);
-  }
-  urln.searchParams.append("srv", srv);
-  
-  // Preserve hash if it exists, otherwise generate a new key
-  let hash = document.location.hash;
-  if (!hash) {
-    hash = "#key=" + generateHexKey();
-  }
-  urln.hash = hash;
+  const nick = document.getElementById("nickname_id").value.trim();
+  if (!nick) return;
+  myNickname = nick;
+  document.getElementById("chatpopup").style.display = "none";
+  initP2P(chatRoomId, myNickname, srvIndex);
+}
 
-  document.location.replace(urln);
+function copyShareLink() {
+  const copyText = document.getElementById("share_link_input");
+  copyText.select();
+  copyText.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(copyText.value);
+  const btn = document.querySelector(".copy_btn");
+  const oldText = btn.textContent;
+  btn.textContent = "Copied!";
+  setTimeout(() => btn.textContent = oldText, 2000);
 }
 
 function escapeHTML(str) {
   if (!str) return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-    .replace(/;/g, "&#59;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/;/g, "&#59;");
 }
 
 function appendLocalMessage(msgText) {
   const escaped = escapeHTML(msgText);
   const container = document.getElementById("messages_id");
-  container.innerHTML += '<a class="message_bizim">' + escaped + '</a>';
+  container.innerHTML += '<div class="msg_wrapper msg_local"><div class="msg_bubble">' + escaped + '</div></div>';
   container.scrollTop = container.scrollHeight;
 }
 
@@ -276,18 +158,17 @@ function appendRemoteMessage(nickname, msgText) {
   const escapedNick = escapeHTML(nickname);
   const escapedMsg = escapeHTML(msgText);
   const container = document.getElementById("messages_id");
-  container.innerHTML += '<a class="user_name_sender"><b>' + escapedNick + '</b></a> <a class="message_karsi_taraf">' + escapedMsg + '</a>';
+  container.innerHTML += '<div class="msg_wrapper msg_remote"><div class="msg_sender_name">' + escapedNick + '</div><div class="msg_bubble">' + escapedMsg + '</div></div>';
   container.scrollTop = container.scrollHeight;
 }
 
 function appendSystemMessage(msgText) {
   const escapedMsg = escapeHTML(msgText);
   const container = document.getElementById("messages_id");
-  container.innerHTML += '<div style="color: #007579; text-align: center; font-family: arimo; font-size: 14px; margin-bottom: 10px; padding: 5px;"><i>' + escapedMsg + '</i></div>';
+  container.innerHTML += '<div class="sys_msg">' + escapedMsg + '</div>';
   container.scrollTop = container.scrollHeight;
 }
 
-// Encrypt and send payload directly to a peer connection
 async function sendEncrypted(conn, payload) {
   if (!conn || !conn.open) return;
   const plainText = JSON.stringify(payload);
@@ -300,7 +181,6 @@ async function sendEncrypted(conn, payload) {
   }
 }
 
-// Encrypt and broadcast payload to all open peer connections
 async function broadcast(payload) {
   const plainText = JSON.stringify(payload);
   let dataToSend;
@@ -324,11 +204,9 @@ async function send_msg() {
   const text = inputEl.value;
   if (!text) return;
 
-  // Render locally immediately
   appendLocalMessage(text);
   inputEl.value = "";
 
-  // Broadcast to all active connections
   const payload = {
     type: "chat",
     nickname: myNickname,
@@ -337,83 +215,75 @@ async function send_msg() {
   await broadcast(payload);
 }
 
-function initP2P(roomId, nickname, srvIndex) {
+async function initP2P(roomId, nickname, serverIdx) {
   myPeerId = roomId;
-  const options = getPeerOptions(srvIndex);
-  
-  peer = new Peer(myPeerId, options);
-  
-  peer.on('open', (id) => {
-    isHost = true;
-    console.log("Registered as Host. Peer ID:", id);
-    document.getElementById("chat_input_id").placeholder = "Message...";
-    appendSystemMessage("You connected as Host. Waiting for other users to join...");
-    setupHostListeners();
-  });
-  
-  peer.on('error', (err) => {
-    console.warn("PeerJS error:", err);
-    if (err.type === 'unavailable-id') {
-      // ID taken -> Guest mode
+  appendSystemMessage("Connecting to signaling server...");
+
+  try {
+    const result = await tryConnectPeer(myPeerId, serverIdx);
+
+    if (result.unavailableId) {
       isHost = false;
-      peer.destroy();
-      
       const randomId = roomId + "-" + Math.random().toString(36).substr(2, 9);
       myPeerId = randomId;
-      
+
+      const options = getPeerOptions(result.serverIndex);
       peer = new Peer(myPeerId, options);
-      
+
       peer.on('open', (id) => {
-        console.log("Registered as Guest. Peer ID:", id);
         document.getElementById("chat_input_id").placeholder = "Connecting to host...";
         appendSystemMessage("Connecting to host...");
         connectToHost(roomId);
       });
-      
+
       peer.on('error', (guestErr) => {
-        console.error("Guest PeerJS error:", guestErr);
         appendSystemMessage("Connection error: " + guestErr.message);
       });
     } else {
-      appendSystemMessage("Signaling error: " + err.message);
+      peer = result.peer;
+      isHost = true;
+      document.getElementById("chat_input_id").placeholder = "Message...";
+      appendSystemMessage("You connected as Host. Waiting for other users to join...");
+      setupHostListeners();
+
+      if (parseInt(serverIdx) !== result.serverIndex) {
+        let hp = new URLSearchParams(window.location.hash.substring(1));
+        hp.set("srv", result.serverIndex);
+        window.history.replaceState({}, '', window.location.pathname + window.location.search + "#" + hp.toString());
+        document.getElementById("share_link_input").value = window.location.href;
+      }
     }
-  });
+  } catch (err) {
+    appendSystemMessage("All signaling servers are down. Please try again later.");
+  }
 }
 
 function setupHostListeners() {
   peer.on('connection', (conn) => {
-    console.log("Guest connected to host:", conn.peer);
     setupConnectionEvents(conn);
   });
 }
 
 function connectToHost(hostId) {
-  // Do NOT send nickname in metadata — it goes unencrypted to the signaling server
   const conn = peer.connect(hostId);
   setupConnectionEvents(conn);
 }
 
-// Track peers that have not yet sent a valid encrypted greet
 let pendingAuth = {};
 
 function setupConnectionEvents(conn) {
   connections[conn.peer] = conn;
   
   conn.on('open', async () => {
-    console.log("DataChannel open with:", conn.peer);
-    
     if (!isHost) {
       document.getElementById("chat_input_id").placeholder = "Message...";
-      // Guest immediately sends greeting (encrypted) to let Host verify key
       await sendEncrypted(conn, {
         type: "greet",
         nickname: myNickname
       });
     } else {
-      // Host: set a 10-second timeout — if no valid greet arrives, kick this peer
       pendingAuth[conn.peer] = setTimeout(() => {
         if (pendingAuth[conn.peer]) {
-          console.warn("Peer " + conn.peer + " did not authenticate in time. Disconnecting.");
           conn.close();
           delete pendingAuth[conn.peer];
           delete connections[conn.peer];
@@ -427,9 +297,7 @@ function setupConnectionEvents(conn) {
       const outer = JSON.parse(raw);
       const encKey = getEncryptionKey();
       
-      // Enforce encryption if room has a key
       if (encKey && !outer.encrypted) {
-        console.warn("Rejected unencrypted packet since encryption is enabled.");
         conn.close();
         return;
       }
@@ -437,14 +305,11 @@ function setupConnectionEvents(conn) {
       let plainText;
       if (outer.encrypted) {
         if (!encKey) {
-          console.warn("Received encrypted packet but key is missing in URL.");
           conn.close();
           return;
         }
         plainText = await decryptData(outer.payload, encKey);
-        // Check if decryption actually failed (wrong key)
         if (plainText === null || plainText.startsWith("[Şifre Çözme Başarısız")) {
-          console.warn("Decryption failed for peer " + conn.peer + ". Wrong key — disconnecting.");
           conn.close();
           return;
         }
@@ -462,7 +327,6 @@ function setupConnectionEvents(conn) {
           const newGuestId = conn.peer;
           const guestNick = data.nickname || "Guest";
           
-          // Clear pending auth timeout — peer authenticated successfully
           if (pendingAuth[newGuestId]) {
             clearTimeout(pendingAuth[newGuestId]);
             delete pendingAuth[newGuestId];
@@ -472,14 +336,12 @@ function setupConnectionEvents(conn) {
           
           const existingGuests = Object.keys(connections).filter(id => id !== newGuestId && connections[id] && connections[id].open);
           
-          // Send welcome packet encrypted (contains peer list)
           await sendEncrypted(conn, {
             type: "welcome",
             peers: existingGuests,
             nickname: "System"
           });
           
-          // Notify other existing guests about the new peer
           for (const otherId of existingGuests) {
             await sendEncrypted(connections[otherId], {
               type: "new-peer",
@@ -507,19 +369,15 @@ function setupConnectionEvents(conn) {
         }
       }
     } catch (e) {
-      console.error("Error decrypting/processing data from " + conn.peer + ":", e);
-      // Immediately disconnect unauthorized or erroring peer
       conn.close();
     }
   });
   
   conn.on('close', () => {
-    console.log("Connection closed with:", conn.peer);
     handlePeerDisconnect(conn.peer);
   });
 
   conn.on('error', (err) => {
-    console.error("Connection error with " + conn.peer + ":", err);
     handlePeerDisconnect(conn.peer);
   });
 }
@@ -539,85 +397,68 @@ function handlePeerDisconnect(peerId) {
   }
 }
 
-function healHost() {
-  console.log("Attempting self-healing host...");
+async function healHost() {
   if (peer) {
     peer.destroy();
   }
   connections = {};
   
-  const srvIndex = parms.get("srv") || 0;
-  const options = getPeerOptions(srvIndex);
-  
-  myPeerId = chatRoomId;
-  peer = new Peer(myPeerId, options);
-  
-  peer.on('open', (id) => {
-    isHost = true;
-    console.log("Self-healing: Registered as the new Host!");
-    appendSystemMessage("You are the new room host. Room is active again.");
-    document.getElementById("chat_input_id").placeholder = "Message...";
-    setupHostListeners();
-  });
-  
-  peer.on('error', (err) => {
-    console.warn("Self-healing error:", err);
-    if (err.type === 'unavailable-id') {
+  appendSystemMessage("Reconnecting...");
+
+  try {
+    const result = await tryConnectPeer(chatRoomId, srvIndex);
+
+    if (result.unavailableId) {
       isHost = false;
-      peer.destroy();
-      
       const randomId = chatRoomId + "-" + Math.random().toString(36).substr(2, 9);
       myPeerId = randomId;
-      
+
+      const options = getPeerOptions(result.serverIndex);
       peer = new Peer(myPeerId, options);
       peer.on('open', (id) => {
-        console.log("Self-healing: Registered as Guest again.");
         appendSystemMessage("Reconnecting to the new host...");
         connectToHost(chatRoomId);
       });
     } else {
-      appendSystemMessage("Reconnection failed: " + err.message);
+      peer = result.peer;
+      isHost = true;
+      myPeerId = chatRoomId;
+      appendSystemMessage("You are the new room host. Room is active again.");
+      document.getElementById("chat_input_id").placeholder = "Message...";
+      setupHostListeners();
     }
-  });
+  } catch (err) {
+    appendSystemMessage("Reconnection failed: All servers are down.");
+  }
 }
 
 function start_() {
-  try {
-    var shareId = parms.get("chat_id");
-    var srvIndex = parms.get("srv") || 0;
-    var currentOrigin = document.location.href.split("?")[0].split("#")[0];
-    
-    // Auto-generate key if missing on room load
-    let encryptionKey = getEncryptionKey();
-    if (!encryptionKey && shareId && parms.get("nick")) {
-      encryptionKey = generateHexKey();
-      document.location.hash = "key=" + encryptionKey;
-    }
-    
-    // Build share link safely — escape to prevent XSS via crafted chat_id
-    var rawLink = currentOrigin + "?chat_id=" + encodeURIComponent(shareId) + "&srv=" + encodeURIComponent(srvIndex) + document.location.hash;
-    document.getElementById("shakerlink").textContent = "Share Chat Link: " + rawLink;
-  } catch (error) {
-    console.error(error);
-  }
+  let hashStr = document.location.hash.substring(1);
+  let hashParams = new URLSearchParams(hashStr);
+  
+  chatRoomId = hashParams.get("id");
+  srvIndex = hashParams.get("srv") || 0;
 
-  chatRoomId = parms.get("chat_id");
-  myNickname = parms.get("nick");
-
-  if (chatRoomId == null || chatRoomId == undefined) {
-    document.getElementById("chatpopup").style.display = "block";
-    return;
-  } else if (myNickname == null || myNickname == undefined) {
-    document.getElementById("chatroomin_id").value = chatRoomId;
-    document.getElementById("chatpopup").style.display = "block";
+  if (!chatRoomId) {
+    window.location.replace("index.html");
     return;
   }
 
-  initP2P(chatRoomId, myNickname, srvIndex);
+  if (!hashParams.get("key")) {
+     hashParams.set("key", generateHexKey());
+     window.location.replace(window.location.pathname + window.location.search + "#" + hashParams.toString());
+     return; // Will reload cleanly
+  }
+
+  document.getElementById("share_link_input").value = window.location.href;
+  document.getElementById("share_box").style.display = "flex";
+  
+  document.getElementById("chatpopup").style.display = "block";
+  document.getElementById("nickname_id").focus();
 
   var input_focused = false;
   document.addEventListener("keypress", (event) => {
-    if (input_focused && event.keyCode == 13) {
+    if (input_focused && event.key === 'Enter') {
       send_msg();
     }
   });
@@ -631,6 +472,5 @@ function start_() {
   });
 }
 </script>
-
+</body>
 </html>
-
