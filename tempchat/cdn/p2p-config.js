@@ -3,9 +3,11 @@
 
 const P2P_CONFIG = {
   // Pool of public PeerJS signaling servers
+  // Only add servers you have verified are actually running PeerJS signaling
   signalingServers: [
-    { host: '0.peerjs.com', port: 443, secure: true, path: '/' },
-    { host: 'peerjs.com', port: 443, secure: true, path: '/' }
+    { host: '0.peerjs.com', port: 443, secure: true, path: '/' }
+    // Add your own PeerJS servers here:
+    // { host: 'your-peerjs-server.com', port: 443, secure: true, path: '/' }
   ],
 
   // Pool of free/public STUN servers (like Torrent track lists)
@@ -18,10 +20,13 @@ const P2P_CONFIG = {
     { urls: 'stun:stun.ekiga.net' },
     { urls: 'stun:stun.ideasip.com' },
     { urls: 'stun:stun.schlund.de' }
-  ]
+  ],
+
+  // Timeout (ms) to wait for a signaling server before trying the next one
+  serverTimeout: 8000
 };
 
-// Generates PeerJS initialization options based on server pool index
+// Generates PeerJS initialization options for a specific server index
 function getPeerOptions(serverIndex) {
   const index = parseInt(serverIndex, 10) || 0;
   const server = P2P_CONFIG.signalingServers[index % P2P_CONFIG.signalingServers.length];
@@ -35,6 +40,70 @@ function getPeerOptions(serverIndex) {
     },
     debug: 1 // Only log errors
   };
+}
+
+// Tries to connect a Peer to servers in the pool sequentially.
+// Returns a Promise that resolves with { peer, serverIndex } on success,
+// or rejects if ALL servers fail.
+function tryConnectPeer(peerId, startIndex) {
+  const totalServers = P2P_CONFIG.signalingServers.length;
+  let attemptIndex = parseInt(startIndex, 10) || 0;
+
+  function attemptServer(index, attemptsLeft) {
+    return new Promise((resolve, reject) => {
+      if (attemptsLeft <= 0) {
+        reject(new Error("All signaling servers failed."));
+        return;
+      }
+
+      const srvIdx = index % totalServers;
+      const options = getPeerOptions(srvIdx);
+      const server = P2P_CONFIG.signalingServers[srvIdx];
+      console.log("Trying signaling server: " + server.host + " (index " + srvIdx + ")");
+
+      const testPeer = new Peer(peerId, options);
+      let settled = false;
+
+      // Timeout: if no response in X seconds, try the next server
+      const timeout = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          console.warn("Server " + server.host + " timed out. Trying next...");
+          testPeer.destroy();
+          attemptServer(index + 1, attemptsLeft - 1).then(resolve).catch(reject);
+        }
+      }, P2P_CONFIG.serverTimeout);
+
+      testPeer.on('open', (id) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          resolve({ peer: testPeer, serverIndex: srvIdx });
+        }
+      });
+
+      testPeer.on('error', (err) => {
+        if (settled) return;
+        // unavailable-id is NOT a server failure — it means the server works but ID is taken
+        if (err.type === 'unavailable-id') {
+          settled = true;
+          clearTimeout(timeout);
+          testPeer.destroy();
+          // Resolve with a special flag so caller knows to go Guest mode on THIS server
+          resolve({ peer: null, serverIndex: srvIdx, unavailableId: true });
+        } else {
+          // Server-level failure — try next
+          settled = true;
+          clearTimeout(timeout);
+          console.warn("Server " + server.host + " error: " + err.message + ". Trying next...");
+          testPeer.destroy();
+          attemptServer(index + 1, attemptsLeft - 1).then(resolve).catch(reject);
+        }
+      });
+    });
+  }
+
+  return attemptServer(attemptIndex, totalServers);
 }
 
 // Generate a random 256-bit key in hex format (64 characters)
