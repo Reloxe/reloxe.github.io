@@ -156,20 +156,19 @@
     </div>
     
     <script>
-        function generateId(len) {
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-          return Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        function generateHex(len) {
+            const arr = new Uint8Array(len / 2);
+            window.crypto.getRandomValues(arr);
+            return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
         function creteroom() {
-          const chatroomid = generateId(16);
-          const srvIndex = Math.floor(Math.random() * P2P_CONFIG.signalingServers.length);
+          const chatroomid = generateHex(40);
           const key = generateHexKey();
           
           const hashParams = new URLSearchParams();
           hashParams.set("id", chatroomid);
           hashParams.set("key", key);
-          hashParams.set("srv", srvIndex);
           
           window.location.href = "chat.html#" + hashParams.toString();
         }
